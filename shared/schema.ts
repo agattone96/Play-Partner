@@ -10,9 +10,40 @@ import {
   index,
   serial,
   numeric,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// --- Enums ---
+export const roleEnum = pgEnum("role_enum", ["admin", "viewer"]);
+export const bodyBuildEnum = pgEnum("body_build_enum", [
+  "Slim",
+  "Average",
+  "Athletic",
+  "Muscular",
+  "Stocky",
+  "Large/Big",
+  "Other",
+]);
+export const statusEnum = pgEnum("status_enum", [
+  "New Prospect",
+  "Contacted",
+  "Ready for Vetting",
+  "Vetted",
+  "Active",
+  "On Pause",
+  "Retired",
+  "Do Not Engage",
+]);
+export const referralSourceEnum = pgEnum("referral_source_enum", ["Allison", "Roxanne"]);
+export const tagGroupEnum = pgEnum("tag_group_enum", [
+  "Vibe",
+  "Logistics",
+  "Risk",
+  "Admin",
+]);
+export const adminNameEnum = pgEnum("admin_name_enum", ["Allison", "Roxanne"]);
 
 // Session storage table for Replit Auth
 export const sessions = pgTable(
@@ -25,7 +56,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
-// User storage table for Replit Auth
+// User storage table
 export const users = pgTable("users", {
   id: varchar("id")
     .primaryKey()
@@ -38,7 +69,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("viewer"), // "admin" or "viewer"
+  role: roleEnum("role").default("viewer"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -46,7 +77,7 @@ export const users = pgTable("users", {
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-// Dropdown options - stored as constants for type safety
+// Dropdown options - stored as constants for type safety, derived from Enums where possible
 export const BODY_BUILD_OPTIONS = [
   "Slim",
   "Average",
@@ -87,11 +118,11 @@ export const partners = pgTable("partners", {
   fullName: varchar("full_name", { length: 255 }).notNull(),
   nickname: varchar("nickname", { length: 100 }),
   height: varchar("height", { length: 50 }),
-  bodyBuild: varchar("body_build", { length: 50 }),
+  bodyBuild: bodyBuildEnum("body_build"),
   dob: timestamp("dob"),
   city: varchar("city", { length: 100 }),
-  status: varchar("status", { length: 50 }).default("New Prospect"),
-  referralSource: varchar("referral_source", { length: 50 }),
+  status: statusEnum("status").default("New Prospect"),
+  referralSource: referralSourceEnum("referral_source"),
   tags: text("tags").array(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -190,12 +221,13 @@ export const adminAssessments = pgTable("admin_assessments", {
   partnerId: integer("partner_id")
     .notNull()
     .references(() => partners.id, { onDelete: "cascade" }),
-  admin: varchar("admin", { length: 50 }).notNull(), // "Allison" or "Roxanne"
-  status: varchar("status", { length: 50 }),
+  admin: adminNameEnum("admin").notNull(), // "Allison" or "Roxanne"
+  status: statusEnum("status"),
   rating: integer("rating"),
   blacklisted: boolean("blacklisted").default(false),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const adminAssessmentsRelations = relations(
@@ -212,7 +244,7 @@ export const adminAssessmentsRelations = relations(
 export const tags = pgTable("tags", {
   id: serial("id").primaryKey(),
   tagName: varchar("tag_name", { length: 100 }).notNull().unique(),
-  tagGroup: varchar("tag_group", { length: 50 }).notNull(), // Vibe, Logistics, Risk, Admin
+  tagGroup: tagGroupEnum("tag_group").notNull(), // Vibe, Logistics, Risk, Admin
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -249,6 +281,9 @@ export const insertAdminAssessmentSchema = createInsertSchema(
 ).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+}).extend({
+  rating: z.number().int().min(1).max(5).nullable().optional(),
 });
 
 export const insertTagSchema = createInsertSchema(tags).omit({

@@ -72,13 +72,13 @@ async function seedUsers() {
       email: "allisongattone@gmail.com",
       firstName: "Allison",
       lastName: "Gattone",
-      role: "admin",
+      role: "admin" as const,
     },
     {
       email: "theblackroxanne@gmail.com",
       firstName: "Roxanne",
       lastName: "Bogalis",
-      role: "admin",
+      role: "admin" as const,
     }
   ];
 
