@@ -3,9 +3,29 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { logger, logRequest } from "./log";
+
+export { logger };
 
 const app = express();
 const httpServer = createServer(app);
+
+// Security Headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for now as it might conflict with Vite/dev execution scripts
+}));
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api", apiLimiter);
 
 declare module "http" {
   interface IncomingMessage {
@@ -23,17 +43,7 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-
+// Replaces custom log function
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -48,12 +58,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      log(logLine);
+      logRequest(req, res, duration, capturedJsonResponse);
     }
   });
 
@@ -94,7 +99,7 @@ async function seedUsers() {
       // Ensure other required fields are present if creating new
       id: existing?.id || undefined, 
     });
-    console.log(`Seeded/Updated admin: ${admin.email}`);
+    logger.info(`Seeded/Updated admin: ${admin.email}`);
   }
 }
 
@@ -102,12 +107,15 @@ async function seedUsers() {
   await seedUsers();
   await registerRoutes(httpServer, app);
 
+  // Centralized Error Handling
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    
+    // Log error securely (avoid sensitive info leak if possible but log stacktrace for debugging)
+    logger.error("Internal Server Error", { message, stack: err.stack, status });
 
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
@@ -131,7 +139,7 @@ async function seedUsers() {
       host: "0.0.0.0",
     },
     () => {
-      log(`serving on port ${port}`);
+      logger.info(`serving on port ${port}`);
     },
   );
 })();

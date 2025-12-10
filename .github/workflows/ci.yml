@@ -30,7 +30,7 @@ jobs:
         run: npm run check
 
       - name: Lint
-        run: npx eslint . --ext .ts,.tsx
+        run: ESLINT_USE_FLAT_CONFIG=false npx eslint . --ext .ts,.tsx
 
       - name: Build
         run: npm run build

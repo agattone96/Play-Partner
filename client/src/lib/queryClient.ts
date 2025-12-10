@@ -1,4 +1,5 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, MutationCache, QueryCache } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -54,4 +55,25 @@ export const queryClient = new QueryClient({
       retry: false,
     },
   },
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  }),
+  queryCache: new QueryCache({
+    onError: (error) => {
+      // Only toast 5xx errors for queries to avoid spamming 404s/403s that might be handled by UI
+      if (error.message.startsWith("5")) {
+         toast({
+          variant: "destructive",
+          title: "Server Error",
+          description: error.message,
+        });
+      }
+    }
+  })
 });
