@@ -1,4 +1,5 @@
-import nodemailer from "nodemailer";
+import { logger } from "../log";
+import * as nodemailer from "nodemailer";
 
 // In production, configure this with real SMTP settings
 // For development, we'll just log to console if no transport is configured
@@ -28,10 +29,7 @@ export const mailService = {
         html: `<p>Click here to login: <a href="${link}">${link}</a></p>`,
       });
     } else {
-      console.log("==================================================");
-      console.log(`[MailService] Magic Link for ${email}:`);
-      console.log(link);
-      console.log("==================================================");
+      logger.info(`[MailService] Magic Link for ${email}: ${link}`);
     }
   },
 
@@ -53,10 +51,7 @@ export const mailService = {
         html: `<p>Click here to reset your password: <a href="${link}">${link}</a></p>`,
       });
     } else {
-      console.log("==================================================");
-      console.log(`[MailService] Password Reset for ${email}:`);
-      console.log(link);
-      console.log("==================================================");
+      logger.info(`[MailService] Password Reset for ${email}: ${link}`);
     }
   }
 };

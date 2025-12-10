@@ -250,7 +250,7 @@ export default function PartnerDetail() {
                       <Select
                         value={editData.bodyBuild || ""}
                         onValueChange={(v) =>
-                          setEditData({ ...editData, bodyBuild: v as any })
+                          setEditData({ ...editData, bodyBuild: v as typeof BODY_BUILD_OPTIONS[number] })
                         }
                       >
                         <SelectTrigger className="h-8" data-testid="select-edit-body-build">

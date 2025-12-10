@@ -23,7 +23,7 @@ import {
   type PartnerWithComputed,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, ilike, or } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
