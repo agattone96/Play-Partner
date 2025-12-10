@@ -1,0 +1,350 @@
+Generate a complete private web app called PlayPartner that replaces a multi-table partner management workbook with a fast, easy-to-view, easy-to-upkeep system.
+
+Platform constraints:
+
+Treat this as a production-ready MVP, not a mock.
+
+If you support stack selection, use:
+
+Next.js (App Router) + TypeScript + Tailwind
+
+Supabase (Auth + Postgres + Storage + RLS)
+
+If you do not support explicit stack selection, generate an equivalent architecture and ensure full code export is available.
+
+Primary goals:
+
+Low upkeep: adding/updating records must feel effortless.
+
+Fast decisions: status, risk, feasibility, and ratings must be visible in seconds.
+
+Modular data separation: profiles and assessments must not contaminate each other.
+
+Privacy-first UX: sensitive details must be protected by default.
+
+Core modules (MVP)
+
+Partners (Core hub)
+
+Partner Intimacy
+
+Partner Logistics
+
+Partner Media
+
+Admin Assessments
+
+Tags + Tag Groups
+
+Taxonomies / Lists
+
+Users & permissions
+
+Admins:
+
+Allison
+
+Roxanne
+
+Permissions:
+
+Admins can create/edit everything.
+
+Optional Viewer role (read-only) if easy.
+
+Required data model
+
+partners
+
+Partner_ID (auto)
+
+Full_Name (required)
+
+Nickname (optional)
+
+Height (freeform)
+
+Body_Build (dropdown)
+
+DOB (optional)
+
+City (freeform)
+
+Status (dropdown)
+
+Referral_Source (dropdown)
+
+Tags (optional)
+
+partner_intimacy (1:1)
+
+Partner_ID (FK)
+
+Kinks (multi)
+
+Role (multi)
+
+Bedroom_Style (multi)
+
+Sexual_Orientation (text)
+
+Relationship_Status (text)
+
+Appealing_Characteristics (multi)
+
+Phallic_Length (optional numeric)
+
+Notes
+
+partner_logistics (1:1)
+
+Partner_ID (FK)
+
+Discreet_DL (bool)
+
+Hosting (bool)
+
+Car (bool)
+
+Street_Address (sensitive)
+
+Phone_Number (sensitive)
+
+City (freeform)
+
+partner_media (1:many)
+
+Partner_ID (FK)
+
+Photo_Face_URL
+
+Photo_Body_URL
+
+Optional file upload support
+
+admin_assessments (1:many)
+
+Partner_ID (FK)
+
+Admin (Allison/Roxanne)
+
+Status (dropdown)
+
+Rating (1–5)
+
+Blacklisted (bool)
+
+Notes
+
+Created_At
+
+tags
+
+Tag_Name
+
+Tag_Group (Vibe, Logistics, Risk, Admin)
+
+taxonomies
+
+Body_Build
+
+Status
+
+Referral_Source
+
+Kinks
+
+Roles
+
+Bedroom_Style
+
+Appealing_Characteristics
+
+Admins
+
+Dropdown options (MVP)
+
+Body_Build
+
+Slim, Average, Athletic, Muscular, Stocky, Large/Big, Other
+
+Status
+
+New Prospect, Contacted, Ready for Vetting, Vetted, Active, On Pause, Retired, Do Not Engage
+
+Referral_Source
+
+Allison, Roxanne
+
+Rating
+
+1, 2, 3, 4, 5
+
+Tag_Group
+
+Vibe, Logistics, Risk, Admin
+
+Non-negotiable logic
+
+Create computed fields or DB views:
+
+avg_rating
+Average of all assessment ratings per Partner.
+
+latest_admin_status
+Latest status per admin per Partner.
+
+effective_status rule
+
+If any assessment has Blacklisted = true OR any latest admin status is Do Not Engage
+→ effective_status = Do Not Engage
+
+Else prefer Allison’s latest status if present, else Roxanne’s, else Partner.Status.
+
+risk_flag
+
+True if Blacklisted OR tags in Risk group.
+
+conflict_flag
+
+True if latest admin statuses disagree.
+
+Required screens
+
+Login
+
+Dashboard
+
+Status KPIs
+
+Vetting queue
+
+Risk list
+
+Conflicts list
+
+Partners List
+
+Fast filters:
+
+effective_status
+
+admin statuses
+
+tags + tag group
+
+city
+
+hosting/car/discreet
+
+rating range
+
+Row preview:
+
+name + nickname
+
+status chips
+
+avg rating
+
+logistics icons
+
+Partner Detail
+
+Tabs:
+
+Overview
+
+Intimacy
+
+Logistics
+
+Media
+
+Assessments timeline
+
+Quick-add assessment
+
+Assessments
+
+Tags + Taxonomies manager
+
+Settings (optional)
+
+Data entry UX
+
+Quick Add Partner (minimal fields)
+
+One-click assessment modal from list + detail
+
+Intimacy/Logistics sections collapsed by default
+
+“Do Not Engage” triggers a confirmation + visual lock state
+
+Import/Export
+
+Provide:
+
+CSV import for:
+
+Partners (Core)
+
+Partner Intimacy
+
+Partner Logistics
+
+Partner Media
+
+Admin Assessments
+
+Tags
+
+Export filtered lists to CSV.
+
+Design requirements (must implement)
+
+Visual style:
+
+Clean, dark-mode-first, high-contrast, minimal
+
+Calm and clinical, not playful.
+
+Clear information hierarchy.
+
+UI system:
+
+Define tokens for:
+
+primary
+
+secondary
+
+accent
+
+success
+
+warning
+
+danger
+
+background
+
+surface
+
+text
+
+Rounded cards, soft shadows, tight spacing.
+
+Status chips with consistent color semantics.
+
+Logistics shown as icons.
+
+Risk items visually distinct.
+
+Accessibility:
+
+High contrast
+
+Clear focus states
+
+No tiny low-contrast text.
