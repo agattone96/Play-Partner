@@ -109,9 +109,9 @@ export function PartnerCard({
             </div>
             <RatingDisplay rating={partner.avgRating} />
             <LogisticsIcons
-              hosting={partner.logistics?.hosting}
-              car={partner.logistics?.car}
-              discreet={partner.logistics?.discreetDl}
+              hosting={partner.logistics?.hosting || false}
+              car={partner.logistics?.car || false}
+              discreet={partner.logistics?.discreetDl || false}
               hasPhone={!!partner.logistics?.phoneNumber}
             />
           </div>

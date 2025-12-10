@@ -63,9 +63,9 @@ export function PartnerRow({ partner, onQuickAssess, className }: PartnerRowProp
 
       <div className="w-24">
         <LogisticsIcons
-          hosting={partner.logistics?.hosting}
-          car={partner.logistics?.car}
-          discreet={partner.logistics?.discreetDl}
+          hosting={partner.logistics?.hosting || false}
+          car={partner.logistics?.car || false}
+          discreet={partner.logistics?.discreetDl || false}
           hasPhone={!!partner.logistics?.phoneNumber}
         />
       </div>

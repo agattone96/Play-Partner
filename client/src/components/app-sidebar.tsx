@@ -163,12 +163,13 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            asChild
+            onClick={async () => {
+              await fetch("/api/logout", { method: "POST" });
+              window.location.href = "/";
+            }}
             data-testid="button-logout"
           >
-            <a href="/api/logout">
-              <LogOut className="h-4 w-4" />
-            </a>
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </SidebarFooter>

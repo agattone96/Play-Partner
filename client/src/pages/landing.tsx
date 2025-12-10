@@ -14,7 +14,7 @@ export default function Landing() {
             <span className="font-semibold text-lg">PlayPartner</span>
           </div>
           <Button asChild data-testid="button-login">
-            <a href="/api/login">Sign In</a>
+            <a href="/auth">Sign In</a>
           </Button>
         </div>
       </header>
@@ -30,7 +30,7 @@ export default function Landing() {
           </p>
 
           <Button size="lg" asChild data-testid="button-get-started">
-            <a href="/api/login">Get Started</a>
+            <a href="/auth">Get Started</a>
           </Button>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">

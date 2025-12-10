@@ -304,9 +304,9 @@ export default function PartnerDetail() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Logistics</span>
                   <LogisticsIcons
-                    hosting={partner.logistics?.hosting}
-                    car={partner.logistics?.car}
-                    discreet={partner.logistics?.discreetDl}
+                    hosting={partner.logistics?.hosting || false}
+                    car={partner.logistics?.car || false}
+                    discreet={partner.logistics?.discreetDl || false}
                     hasPhone={!!partner.logistics?.phoneNumber}
                   />
                 </div>
@@ -486,9 +486,9 @@ export default function PartnerDetail() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex items-center gap-3">
                         <LogisticsIcons
-                          hosting={partner.logistics.hosting}
-                          car={partner.logistics.car}
-                          discreet={partner.logistics.discreetDl}
+                          hosting={partner.logistics.hosting || false}
+                          car={partner.logistics.car || false}
+                          discreet={partner.logistics.discreetDl || false}
                         />
                         <span className="text-sm">
                           {[

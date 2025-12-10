@@ -1,31 +1,139 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth } from "./auth";
+import passport from "passport";
+import crypto from "crypto";
+import { mailService } from "./services/mail";
+import bcrypt from "bcryptjs";
 import {
   insertPartnerSchema,
   insertAdminAssessmentSchema,
   insertTagSchema,
 } from "@shared/schema";
 
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: "Unauthorized" });
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupAuth(app);
 
   // Auth routes
-  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Authentication failed" });
+      }
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        return res.json(user);
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.sendStatus(200);
+    });
+  });
+
+  app.get("/api/auth/user", isAuthenticated, (req, res) => {
+    res.json(req.user);
+  });
+
+  app.post("/api/magic-link", async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal user existence
+        return res.json({ message: "If your email is registered, you will receive a magic link." });
+      }
+
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      await storage.updateUser(user.id, {
+        magicLinkToken: token,
+        magicLinkExpiresAt: expiresAt,
+      });
+
+      await mailService.sendMagicLink(email, token);
+
+      res.json({ message: "If your email is registered, you will receive a magic link." });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error("Magic link error:", error);
+      res.status(500).json({ message: "Failed to send magic link" });
     }
   });
+
+  app.get("/api/magic-link/callback", async (req, res) => {
+    const { token } = req.query;
+    if (!token || typeof token !== "string") {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    try {
+      const user = await storage.getUserByMagicLinkToken(token);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid or expired magic link" });
+      }
+
+      // Invalidate token
+      await storage.updateUser(user.id, {
+        magicLinkToken: null,
+        magicLinkExpiresAt: null,
+      });
+
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "Failed to log in" });
+        }
+        res.redirect("/");
+      });
+    } catch (error) {
+      console.error("Magic link callback error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/reset-password", isAuthenticated, async (req, res) => {
+    const { password } = req.body;
+    if (!password || password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = req.user as any;
+      
+      const updatedUser = await storage.updateUser(user.id, {
+        password: hashedPassword,
+        isPasswordResetRequired: false,
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
 
   // Dashboard
   app.get("/api/dashboard", isAuthenticated, async (req, res) => {
@@ -33,7 +141,7 @@ export async function registerRoutes(
       const data = await storage.getDashboardData();
       res.json(data);
     } catch (error) {
-      console.error("Error fetching dashboard:", error);
+      console.error("Error fetching dashboard data:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });
     }
   });
@@ -49,37 +157,14 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/partners/export", isAuthenticated, async (req, res) => {
+  app.post("/api/partners", isAuthenticated, async (req, res) => {
     try {
-      const partners = await storage.getAllPartners();
-      
-      const csvHeader = "ID,Full Name,Nickname,City,Status,Body Build,Height,Referral Source,Average Rating,Effective Status,Risk Flag,Conflict Flag\n";
-      const csvRows = partners.map((p) =>
-        [
-          p.id,
-          `"${p.fullName}"`,
-          `"${p.nickname || ""}"`,
-          `"${p.city || ""}"`,
-          `"${p.status || ""}"`,
-          `"${p.bodyBuild || ""}"`,
-          `"${p.height || ""}"`,
-          `"${p.referralSource || ""}"`,
-          p.avgRating?.toFixed(1) || "",
-          `"${p.effectiveStatus}"`,
-          p.riskFlag ? "Yes" : "No",
-          p.conflictFlag ? "Yes" : "No",
-        ].join(",")
-      ).join("\n");
-
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="partners-${new Date().toISOString().split("T")[0]}.csv"`
-      );
-      res.send(csvHeader + csvRows);
-    } catch (error) {
-      console.error("Error exporting partners:", error);
-      res.status(500).json({ message: "Failed to export partners" });
+      const validatedData = insertPartnerSchema.parse(req.body);
+      const partner = await storage.createPartner(validatedData);
+      res.status(201).json(partner);
+    } catch (error: any) {
+      console.error("Error creating partner:", error);
+      res.status(400).json({ message: error.message || "Failed to create partner" });
     }
   });
 
@@ -97,21 +182,11 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/partners", isAuthenticated, async (req, res) => {
-    try {
-      const validatedData = insertPartnerSchema.parse(req.body);
-      const partner = await storage.createPartner(validatedData);
-      res.status(201).json(partner);
-    } catch (error: any) {
-      console.error("Error creating partner:", error);
-      res.status(400).json({ message: error.message || "Failed to create partner" });
-    }
-  });
-
   app.patch("/api/partners/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const partner = await storage.updatePartner(id, req.body);
+      const validatedData = insertPartnerSchema.partial().parse(req.body);
+      const partner = await storage.updatePartner(id, validatedData);
       if (!partner) {
         return res.status(404).json({ message: "Partner not found" });
       }

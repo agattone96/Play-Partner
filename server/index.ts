@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -59,7 +60,46 @@ app.use((req, res, next) => {
   next();
 });
 
+import { storage } from "./storage";
+import bcrypt from "bcryptjs";
+
+// Seed users
+async function seedUsers() {
+  const hashedPassword = await bcrypt.hash("BadPenny7", 10);
+  
+  const admins = [
+    {
+      email: "allisongattone@gmail.com",
+      firstName: "Allison",
+      lastName: "Gattone",
+      role: "admin",
+    },
+    {
+      email: "theblackroxanne@gmail.com",
+      firstName: "Roxanne",
+      lastName: "Bogalis",
+      role: "admin",
+    }
+  ];
+
+  for (const admin of admins) {
+    const existing = await storage.getUserByEmail(admin.email);
+    // Only seed if user doesn't exist or if we want to force reset for this migration
+    // For now, let's update them to ensure they have the new password structure
+    await storage.upsertUser({
+      ...(existing || {}), // Keep existing ID if any
+      ...admin,
+      password: hashedPassword,
+      isPasswordResetRequired: true,
+      // Ensure other required fields are present if creating new
+      id: existing?.id || undefined, 
+    });
+    console.log(`Seeded/Updated admin: ${admin.email}`);
+  }
+}
+
 (async () => {
+  await seedUsers();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -89,7 +129,6 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);

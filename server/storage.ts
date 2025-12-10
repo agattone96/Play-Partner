@@ -29,6 +29,9 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByMagicLinkToken(token: string): Promise<User | undefined>;
+  updateUser(id: string, data: Partial<User>): Promise<User | undefined>;
 
   // Partner operations
   getAllPartners(): Promise<PartnerWithComputed[]>;
@@ -171,6 +174,34 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByMagicLinkToken(token: string): Promise<User | undefined> {
+    // Check for valid token and not expired
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.magicLinkToken, token),
+          sql`${users.magicLinkExpiresAt} > NOW()`
+        )
+      );
+    return user;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
       .returning();
     return user;
   }
