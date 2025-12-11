@@ -108,8 +108,7 @@ export function QuickAddPartnerModal({
         <DialogHeader>
           <DialogTitle>Add New Partner</DialogTitle>
           <DialogDescription>
-            Quickly add a new partner with minimal information. You can add more
-            details later.
+            Quickly create a new partner record. You can add more details later.
           </DialogDescription>
         </DialogHeader>
 
@@ -260,7 +259,7 @@ export function QuickAddPartnerModal({
                 disabled={createPartner.isPending}
                 data-testid="button-submit-add-partner"
               >
-                {createPartner.isPending ? "Adding..." : "Add Partner"}
+                {createPartner.isPending ? "Creating..." : "Create Partner"}
               </Button>
             </DialogFooter>
           </form>

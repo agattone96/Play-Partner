@@ -11,12 +11,37 @@ import {
   insertAdminAssessmentSchema,
   insertTagSchema,
 } from "@shared/schema";
+import rateLimit from "express-rate-limit";
+
+// SEC-02: Strict rate limiting for auth endpoints to prevent brute-force & spam
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 6, // Limit each IP to 6 requests per windowMs
+  message: { message: "Too many login attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next();
   }
   res.status(401).json({ message: "Unauthorized" });
+}
+
+// SEC-01: Role-Based Access Control Middleware
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Cast user to any to access role safely
+  // Ideally, Express.User should be typed, but we use the flexible schema user here
+  const user = req.user as any;
+  if (user.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
+  next();
 }
 
 export async function registerRoutes(
@@ -27,7 +52,7 @@ export async function registerRoutes(
   setupAuth(app);
 
   // Auth routes
-  app.post("/api/login", (req, res, next) => {
+  app.post("/api/login", authLimiter, (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) return next(err);
       if (!user) {
@@ -51,7 +76,7 @@ export async function registerRoutes(
     res.json(req.user);
   });
 
-  app.post("/api/magic-link", async (req, res) => {
+  app.post("/api/magic-link", authLimiter, async (req, res) => {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
@@ -112,7 +137,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/reset-password", isAuthenticated, async (req, res) => {
+  app.post("/api/reset-password", isAuthenticated, authLimiter, async (req, res) => {
     const { password } = req.body;
     if (!password || password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
@@ -157,7 +182,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/partners", isAuthenticated, async (req, res) => {
+  app.post("/api/partners", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const validatedData = insertPartnerSchema.parse(req.body);
       const partner = await storage.createPartner(validatedData);
@@ -182,7 +207,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/partners/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/partners/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertPartnerSchema.partial().parse(req.body);
@@ -197,7 +222,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/partners/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/partners/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deletePartner(id);
@@ -220,7 +245,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put("/api/partners/:id/intimacy", isAuthenticated, async (req, res) => {
+  app.put("/api/partners/:id/intimacy", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
       const intimacy = await storage.upsertPartnerIntimacy({
@@ -246,7 +271,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put("/api/partners/:id/logistics", isAuthenticated, async (req, res) => {
+  app.put("/api/partners/:id/logistics", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
       const logistics = await storage.upsertPartnerLogistics({
@@ -272,7 +297,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/partners/:id/media", isAuthenticated, async (req, res) => {
+  app.post("/api/partners/:id/media", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
       const media = await storage.createPartnerMedia({
@@ -286,7 +311,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/media/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/media/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deletePartnerMedia(id);
@@ -350,7 +375,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/assessments", isAuthenticated, async (req, res) => {
+  app.post("/api/assessments", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const validatedData = insertAdminAssessmentSchema.parse(req.body);
       const assessment = await storage.createAssessment(validatedData);
@@ -372,7 +397,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/tags", isAuthenticated, async (req, res) => {
+  app.post("/api/tags", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const validatedData = insertTagSchema.parse(req.body);
       const tag = await storage.createTag(validatedData);
@@ -383,7 +408,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/tags/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/tags/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteTag(id);

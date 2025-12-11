@@ -33,7 +33,7 @@ export default function Dashboard() {
       <div className="p-6 space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            <h1 className="text-2xl font-semibold">Overview</h1>
             <p className="text-muted-foreground">Partner management overview</p>
           </div>
         </div>
@@ -59,12 +59,12 @@ export default function Dashboard() {
     <div className="p-6 space-y-8">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <h1 className="text-2xl font-semibold">Overview</h1>
           <p className="text-muted-foreground">Partner management overview</p>
         </div>
         <Button onClick={() => setShowAddPartner(true)} data-testid="button-add-partner">
           <Plus className="h-4 w-4 mr-2" />
-          Add Partner
+          Create Partner
         </Button>
       </div>
 
@@ -93,6 +93,27 @@ export default function Dashboard() {
           variant="danger"
         />
       </div>
+
+      {/* FLOW-01: First-Run Experience / Getting Started Banner */}
+      {dashboard.totalPartners === 0 && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Plus className="h-8 w-8 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">Welcome to PlayPartner!</h3>
+              <p className="text-muted-foreground max-w-md">
+                Get started by creating your first partner record. You can track vetting status, assessments, and detailed profiles.
+              </p>
+            </div>
+            <Button size="lg" onClick={() => setShowAddPartner(true)} className="gap-2">
+              <Plus className="h-5 w-5" />
+              Create Your First Partner
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -197,7 +218,7 @@ export default function Dashboard() {
                     size="sm"
                     onClick={() => setShowAddPartner(true)}
                   >
-                    Add Partner
+                    Create Partner
                   </Button>
                 }
                 className="py-8"

@@ -21,34 +21,7 @@ import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
-import { AnimatePresence, motion } from "framer-motion";
-
-function AuthenticatedRouter() {
-  const [location] = useLocation();
-  
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="h-full"
-      >
-        <Switch location={location}>
-          <Route path="/" component={Dashboard} />
-          <Route path="/partners" component={Partners} />
-          <Route path="/partners/:id" component={PartnerDetail} />
-          <Route path="/assessments" component={Assessments} />
-          <Route path="/tags" component={Tags} />
-          <Route path="/settings" component={Settings} />
-          <Route component={NotFound} />
-        </Switch>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+import { AuthenticatedRouter } from "@/components/authenticated-router";
 
 function AuthenticatedLayout() {
   const style = {

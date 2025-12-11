@@ -9,8 +9,8 @@ export const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
+        // OBS-01: Structured JSON logging for production observability
+        winston.format.json()
       ),
     }),
   ],

@@ -32,3 +32,23 @@ Environment variables are validated on startup using `server/env.ts`.
 
 - **Secret Scanning**: GitHub Actions runs `gitleaks` on every push to detect accidental commit of secrets.
 - **Dependency Audit**: We monitor `npm audit` for critical vulnerabilities.
+
+## Data Privacy & Retention
+
+### Personal Identifiable Information (PII)
+
+The application stores the following PII:
+
+- **Users**: Name, Email, Profile Image (Google Auth).
+- **Partners**: Name, City, Social Links, Notes (User-generated).
+
+### Retention Policy
+
+- **Active Data**: Retained indefinitely while the account is active.
+- **Retired Partners**: Partners marked as "Retired" are retained for historical vetting context but hidden from the main active views.
+- **Deleted Data**: "Hard delete" is performed immediately upon user request or via the "Delete Partner" action. No soft-delete buffers are currently implemented for partner records.
+- **Backups**: Database backups are retained for 30 days.
+
+### HTTPS Enforcement
+
+All production traffic must be served over HTTPS. This is enforced at the edge (Cloudflare/Vercel/Replit) and via the `Secure` cookie attribute for sessions.
