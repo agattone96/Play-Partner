@@ -93,7 +93,13 @@ export function QuickAddPartnerModal({
   });
 
   const onSubmit = (data: QuickAddFormValues) => {
-    createPartner.mutate(data);
+    // Sanitize data: Convert empty strings to undefined for Enums to match DB schema
+    const payload = {
+      ...data,
+      referralSource: data.referralSource === "" ? undefined : data.referralSource,
+      bodyBuild: data.bodyBuild === "" ? undefined : data.bodyBuild,
+    };
+    createPartner.mutate(payload);
   };
 
   return (
