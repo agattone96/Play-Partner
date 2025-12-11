@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
   {
-    title: "Dashboard",
+    title: "Overview",
     url: "/",
     icon: LayoutDashboard,
   },

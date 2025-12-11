@@ -1,6 +1,12 @@
 # User Manual
 
-Welcome to Play-Partner. This guide helps you navigate and use the application features.
+> **Version:** 1.0.0
+> **Last Updated:** December 2025
+> **Audience:** Administrators & Standard Users
+
+Welcome to **PlayPartner**. This guide helps you navigate and use the application features.
+
+**Note:** Features marked with `[Admin Only]` are restricted to users with administrative privileges.
 
 ## 1. Authentication
 
@@ -18,9 +24,30 @@ Welcome to Play-Partner. This guide helps you navigate and use the application f
 - If your account is flagged for a reset (e.g., new admin), you will be forced to change your password upon login.
 - New passwords must be at least 8 characters long.
 
-## 2. Dashboard
+## 2. Roles & Permissions
 
-The Dashboard provides a high-level overview:
+The application has two distinct user roles:
+
+| Feature                    | Admin | Viewer (Standard) |
+| :------------------------- | :---: | :---------------: |
+| **View Partners**          |  ✅   |        ✅         |
+| **View Overview**          |  ✅   |        ✅         |
+| **Create Partners**        |  ✅   |        ❌         |
+| **Edit Profile/Logistics** |  ✅   |        ❌         |
+| **Delete Partners**        |  ✅   |        ❌         |
+| **Create Assessments**     |  ✅   |        ❌         |
+| **Export Data**            |  ✅   |        ❌         |
+| **Manage Tags**            |  ✅   |        ❌         |
+
+> **Note:** Viewers have **Read-Only** access to all data but cannot modify records or export sensitive lists.
+
+## 2. Overview (Dashboard)
+
+The Overview page provides a high-level summary of your partner management activities:
+
+### First Run Experience
+
+If you have no partners, you will see a "Getting Started" banner. Click "Create Your First Partner" to begin.
 
 - **KPI Cards**: Total Active Partners, Vetted Partners, etc.
 - **Recent Activity**: List of recently modified profiles.
@@ -28,9 +55,9 @@ The Dashboard provides a high-level overview:
 
 ## 3. Managing Partners
 
-### Adding a Partner
+### Creating a Partner
 
-1.  Click the "**+ Add User**" button in the Sidebar or Partners page.
+1.  Click the "**Create Partner**" button in the Sidebar or Overview page.
 2.  Fill in the **Quick Add** form (Name is required).
 3.  Click "Create Partner".
 
@@ -45,9 +72,9 @@ Click on any partner card to view their full profile.
   - _Note_: Sensitive fields are blurred by default. Click to reveal.
 - **Media**: Upload/Manage photos.
 
-## 4. Assessments
+## 4. Assessments `[Admin Only]`
 
-Admins can rate and assess partners.
+Only Admin users can rate, assess, and export partner data.
 
 1.  Navigate to **Assessments** or the "Assessments" tab on a Partner profile.
 2.  Click "**+ New Assessment**".
@@ -59,11 +86,11 @@ Admins can rate and assess partners.
 
 ## 5. Settings & Tags
 
-### Tag Management
+### Tag Management `[Admin Only]`
 
-- Organize partners using custom tags.
+- **Create/Delete Tags**: Restricted to Admins.
+- **Apply Tags**: All users can apply existing tags to partners.
 - Categories: Vibe, Logistics, Risk, Admin.
-- Create/Delete tags in the **Tags** page.
 
 ### Theme
 

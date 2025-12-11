@@ -333,7 +333,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/assessments/export", isAuthenticated, async (req, res) => {
+  app.get("/api/assessments/export", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const assessments = await storage.getAllAssessments();
       
