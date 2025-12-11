@@ -14,7 +14,11 @@ declare global {
   }
 }
 
-export function setupAuth(app: Express) {
+  // Trust proxy for secure cookies behind reverse proxies (common in Docker/Cloud)
+  if (app.get("env") === "production") {
+    app.set("trust proxy", 1);
+  }
+
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -22,6 +26,7 @@ export function setupAuth(app: Express) {
     createTableIfMissing: true,
     ttl: sessionTtl / 1000,
     tableName: "sessions",
+    pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
   });
 
   app.use(
@@ -32,8 +37,10 @@ export function setupAuth(app: Express) {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
+        // Secure cookies require HTTPS. In dev (localhost), we might not have it.
+        // If NODE_ENV is production, we strictly require it.
         secure: env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "lax", // 'lax' is better for UX than 'strict' for top-level navigation
         maxAge: sessionTtl,
       },
     })

@@ -4,7 +4,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "db:start": "docker start playpartner-db || docker run --name playpartner-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=playpartner -e PGDATA=/var/lib/postgresql/data -v pgdata:/var/lib/postgresql/data -p 5432:5432 --restart unless-stopped -d postgres:16",
+    "db:start": "docker-compose up -d",
+    "db:stop": "docker-compose down",
     "dev": "npm run db:start && (sleep 4 && open http://localhost:5002 &) && NODE_ENV=development tsx server/index.ts",
     "check-env": "tsx scripts/validate-env.ts",
     "build": "npm run check-env && tsx script/build.ts",

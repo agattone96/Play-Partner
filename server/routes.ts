@@ -171,6 +171,20 @@ export async function registerRoutes(
     }
   });
 
+  // Health check
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Helper for safe ID parsing
+  const getParamId = (req: Request) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      throw new Error("Invalid ID format");
+    }
+    return id;
+  };
+
   // Partners
   app.get("/api/partners", isAuthenticated, async (req, res) => {
     try {
@@ -195,13 +209,16 @@ export async function registerRoutes(
 
   app.get("/api/partners/:id", isAuthenticated, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = getParamId(req);
       const partner = await storage.getPartnerById(id);
       if (!partner) {
         return res.status(404).json({ message: "Partner not found" });
       }
       res.json(partner);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error fetching partner:", error);
       res.status(500).json({ message: "Failed to fetch partner" });
     }
@@ -209,7 +226,7 @@ export async function registerRoutes(
 
   app.patch("/api/partners/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = getParamId(req);
       const validatedData = insertPartnerSchema.partial().parse(req.body);
       const partner = await storage.updatePartner(id, validatedData);
       if (!partner) {
@@ -217,6 +234,9 @@ export async function registerRoutes(
       }
       res.json(partner);
     } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error updating partner:", error);
       res.status(400).json({ message: error.message || "Failed to update partner" });
     }
@@ -224,10 +244,13 @@ export async function registerRoutes(
 
   app.delete("/api/partners/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = getParamId(req);
       await storage.deletePartner(id);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error deleting partner:", error);
       res.status(500).json({ message: "Failed to delete partner" });
     }
@@ -236,10 +259,13 @@ export async function registerRoutes(
   // Partner Intimacy
   app.get("/api/partners/:id/intimacy", isAuthenticated, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const intimacy = await storage.getPartnerIntimacy(partnerId);
       res.json(intimacy || null);
-    } catch (error) {
+    } catch (error: any) {
+       if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error fetching intimacy:", error);
       res.status(500).json({ message: "Failed to fetch intimacy" });
     }
@@ -247,13 +273,16 @@ export async function registerRoutes(
 
   app.put("/api/partners/:id/intimacy", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const intimacy = await storage.upsertPartnerIntimacy({
         ...req.body,
         partnerId,
       });
       res.json(intimacy);
     } catch (error: any) {
+       if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error updating intimacy:", error);
       res.status(400).json({ message: error.message || "Failed to update intimacy" });
     }
@@ -262,10 +291,13 @@ export async function registerRoutes(
   // Partner Logistics
   app.get("/api/partners/:id/logistics", isAuthenticated, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const logistics = await storage.getPartnerLogistics(partnerId);
       res.json(logistics || null);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error fetching logistics:", error);
       res.status(500).json({ message: "Failed to fetch logistics" });
     }
@@ -273,13 +305,16 @@ export async function registerRoutes(
 
   app.put("/api/partners/:id/logistics", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const logistics = await storage.upsertPartnerLogistics({
         ...req.body,
         partnerId,
       });
       res.json(logistics);
     } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error updating logistics:", error);
       res.status(400).json({ message: error.message || "Failed to update logistics" });
     }
@@ -288,10 +323,13 @@ export async function registerRoutes(
   // Partner Media
   app.get("/api/partners/:id/media", isAuthenticated, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const media = await storage.getPartnerMedia(partnerId);
       res.json(media);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error fetching media:", error);
       res.status(500).json({ message: "Failed to fetch media" });
     }
@@ -299,13 +337,16 @@ export async function registerRoutes(
 
   app.post("/api/partners/:id/media", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const media = await storage.createPartnerMedia({
         ...req.body,
         partnerId,
       });
       res.status(201).json(media);
     } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error creating media:", error);
       res.status(400).json({ message: error.message || "Failed to create media" });
     }
@@ -313,10 +354,13 @@ export async function registerRoutes(
 
   app.delete("/api/media/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = getParamId(req);
       await storage.deletePartnerMedia(id);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error deleting media:", error);
       res.status(500).json({ message: "Failed to delete media" });
     }
@@ -366,10 +410,13 @@ export async function registerRoutes(
 
   app.get("/api/partners/:id/assessments", isAuthenticated, async (req, res) => {
     try {
-      const partnerId = parseInt(req.params.id);
+      const partnerId = getParamId(req);
       const assessments = await storage.getPartnerAssessments(partnerId);
       res.json(assessments);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error fetching assessments:", error);
       res.status(500).json({ message: "Failed to fetch assessments" });
     }
@@ -410,10 +457,13 @@ export async function registerRoutes(
 
   app.delete("/api/tags/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = getParamId(req);
       await storage.deleteTag(id);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid ID format") {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
       console.error("Error deleting tag:", error);
       res.status(500).json({ message: "Failed to delete tag" });
     }

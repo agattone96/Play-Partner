@@ -171,4 +171,28 @@ describe("API Routes & RBAC", () => {
       expect(res.body.totalPartners).toBe(10);
     });
   });
+
+  // --- FEATURE: HEALTH & VALIDATION ---
+  describe("Health & Validation", () => {
+    it("GET /api/health should return ok", async () => {
+      const res = await request(app).get("/api/health");
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("ok");
+    });
+
+    it("GET /api/partners/:id should return 400 for invalid ID", async () => {
+      isAuthenticated = true;
+      const res = await request(app).get("/api/partners/abc"); // Invalid ID
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("Invalid ID format");
+    });
+
+    it("DELETE /api/partners/:id should return 400 for invalid ID", async () => {
+      isAuthenticated = true;
+      mockUser = { role: "admin" };
+      const res = await request(app).delete("/api/partners/invalid");
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("Invalid ID format");
+    });
+  });
 });
