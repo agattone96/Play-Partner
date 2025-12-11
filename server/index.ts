@@ -9,6 +9,12 @@ import { logger, logRequest } from "./log";
 
 export { logger };
 
+
+import { env } from "./env";
+
+// Log successful validation
+logger.info(`Environment validated. Secure session configured for ${env.NODE_ENV}.`);
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -89,17 +95,18 @@ async function seedUsers() {
 
   for (const admin of admins) {
     const existing = await storage.getUserByEmail(admin.email);
-    // Only seed if user doesn't exist or if we want to force reset for this migration
-    // For now, let's update them to ensure they have the new password structure
-    await storage.upsertUser({
-      ...(existing || {}), // Keep existing ID if any
-      ...admin,
-      password: hashedPassword,
-      isPasswordResetRequired: true,
-      // Ensure other required fields are present if creating new
-      id: existing?.id || undefined, 
-    });
-    logger.info(`Seeded/Updated admin: ${admin.email}`);
+    
+    // Only seed if user doesn't exist
+    if (!existing) {
+      await storage.upsertUser({
+        ...admin,
+        password: hashedPassword,
+        isPasswordResetRequired: true,
+      });
+      logger.info(`Seeded new admin: ${admin.email}`);
+    } else {
+      logger.info(`Admin exists, skipping seed: ${admin.email}`);
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import connectPg from "connect-pg-simple";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { User as DbUser } from "@shared/schema";
+import { env } from "./env";
 
 declare global {
   namespace Express {
@@ -25,14 +26,14 @@ export function setupAuth(app: Express) {
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || "super_secret_session_key",
+      secret: env.SESSION_SECRET,
       store: sessionStore,
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        // In dev (localhost), secure needs to be false unless using https
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: sessionTtl,
       },
     })

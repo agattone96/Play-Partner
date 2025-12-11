@@ -78,6 +78,8 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
+      // Safe: This injects CSS variables controlled by the local ChartConfig. 
+      // Keys are strictly typed and values come from internal theme config, not user input.
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
