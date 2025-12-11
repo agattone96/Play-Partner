@@ -9,6 +9,7 @@
     "check-env": "tsx scripts/validate-env.ts",
     "build": "npm run check-env && tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
+    "test": "vitest",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
@@ -107,6 +108,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
+    "@types/supertest": "^6.0.3",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
@@ -120,10 +122,12 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "postcss": "^8.4.47",
     "prettier": "^3.7.4",
+    "supertest": "^7.1.4",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
-    "vite": "^5.4.20"
+    "vite": "^5.4.20",
+    "vitest": "^4.0.15"
   },
   "overrides": {
     "esbuild": "^0.25.0"
