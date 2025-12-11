@@ -37,7 +37,7 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        "hover-elevate transition-all duration-150",
+        "glass-card hover-elevate transition-all duration-150",
         variantStyles[variant],
         className
       )}

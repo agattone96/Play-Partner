@@ -73,7 +73,7 @@ export function AppSidebar() {
     : user?.email || "User";
 
   return (
-    <Sidebar>
+    <Sidebar className="glass-sidebar border-r-0">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">

@@ -230,7 +230,7 @@ export default function PartnerDetail() {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="text-lg">Basic Information</CardTitle>
               </CardHeader>
@@ -288,7 +288,7 @@ export default function PartnerDetail() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="text-lg">Status Summary</CardTitle>
               </CardHeader>
@@ -331,7 +331,7 @@ export default function PartnerDetail() {
           </div>
 
           {partner.tags && partner.tags.length > 0 && (
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="text-lg">Tags</CardTitle>
               </CardHeader>
@@ -347,7 +347,7 @@ export default function PartnerDetail() {
         </TabsContent>
 
         <TabsContent value="intimacy">
-          <Card>
+          <Card className="glass-card">
             <Collapsible open={intimacyOpen} onOpenChange={setIntimacyOpen}>
               <CardHeader className="cursor-pointer" onClick={() => setIntimacyOpen(!intimacyOpen)}>
                 <CollapsibleTrigger asChild>
@@ -466,7 +466,7 @@ export default function PartnerDetail() {
         </TabsContent>
 
         <TabsContent value="logistics">
-          <Card>
+          <Card className="glass-card">
             <Collapsible open={logisticsOpen} onOpenChange={setLogisticsOpen}>
               <CardHeader className="cursor-pointer" onClick={() => setLogisticsOpen(!logisticsOpen)}>
                 <CollapsibleTrigger asChild>
@@ -533,7 +533,7 @@ export default function PartnerDetail() {
         </TabsContent>
 
         <TabsContent value="media">
-          <Card>
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg">Media</CardTitle>
             </CardHeader>
@@ -565,7 +565,7 @@ export default function PartnerDetail() {
         </TabsContent>
 
         <TabsContent value="assessments">
-          <Card>
+          <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <CardTitle className="text-lg">Assessment Timeline</CardTitle>
               <Button

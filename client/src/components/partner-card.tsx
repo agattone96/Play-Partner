@@ -33,7 +33,7 @@ export function PartnerCard({
   return (
     <Card
       className={cn(
-        "group hover-elevate transition-all duration-150",
+        "glass-card group hover-elevate transition-all duration-150",
         partner.riskFlag && "risk-indicator",
         className
       )}
